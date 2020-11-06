@@ -1,0 +1,64 @@
+package com.github.paulosalonso.customer.usecase.publisher;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.Test;
+
+import java.util.function.Consumer;
+
+import static com.github.paulosalonso.customer.usecase.LoggerHelper.getListAppender;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+public class PublisherImplTest {
+
+    private PublisherImpl publisherImpl = new PublisherImpl();
+
+    @Test
+    public void givenAConsumerWhenPublishAConsumedTypeThenAccept() {
+        Consumer<String> consumer = mock(Consumer.class);
+
+        publisherImpl.registerConsumer(consumer, String.class, "test");
+        publisherImpl.publish("published-value");
+
+        verify(consumer).accept("published-value");
+    }
+
+    @Test
+    public void givenAConsumerWhenPublishANonConsumedTypeThenDoNothing() {
+        Consumer<String> consumer = mock(Consumer.class);
+
+        publisherImpl.registerConsumer(consumer, String.class, "test");
+        publisherImpl.publish(1);
+
+        verifyNoInteractions(consumer);
+    }
+
+    @Test
+    public void givenSeveralConsumersWhenPublishAndAnyoneThrowsAnExceptionThenPublishToTheOthers() {
+        ListAppender<ILoggingEvent> appender = getListAppender();
+
+        Consumer<String> consumerA = mock(Consumer.class);
+        Consumer<String> consumerB = mock(Consumer.class);
+
+        doThrow(RuntimeException.class).when(consumerA).accept("Test");
+
+        publisherImpl.registerConsumer(consumerA, String.class, "consumer a");
+        publisherImpl.registerConsumer(consumerB, String.class, "consumer b");
+
+        publisherImpl.publish("Test");
+
+        verify(consumerA).accept("Test");
+        verify(consumerB).accept("Test");
+
+        assertThat(appender.list)
+                .hasSize(1)
+                .first().satisfies(event -> {
+                    assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+                    assertThat(event.getFormattedMessage())
+                            .isEqualTo("An error occurred when publishing value to consumer 'consumer a'");
+                });
+    }
+
+}
