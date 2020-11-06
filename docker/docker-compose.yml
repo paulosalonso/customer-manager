@@ -33,7 +33,7 @@ services:
       - schema-registry
 
   postgres:
-    image: postgres
+    image: postgres:12
     environment:
       POSTGRES_PASSWORD: "postgres"
     ports:

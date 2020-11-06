@@ -14,7 +14,7 @@ public class ProducerConfiguration {
     @Profile("customer-creation-notifier")
     @Bean
     public NotificationProducer notificationProducer(KafkaTemplate<String, Notification> kafkaTemplate,
-            @Value("${com.github.paulosalonso.zup.kafka.topic.customer-created-notifier}") String topic) {
+            @Value("${com.github.paulosalonso.customer.kafka.topic.customer-created-notifier}") String topic) {
         return new NotificationProducer(kafkaTemplate, topic);
     }
 }
