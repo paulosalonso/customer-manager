@@ -24,7 +24,8 @@ services:
     environment:
       SERVER_PORT: 8090
       NOTIFIER_EMAIL_SENDER: Paulo Alonso <paulo_alonso_@hotmail.com>
-      NOTIFIER_EMAIL_SERVICE_TYPE: fake
+      NOTIFIER_EMAIL_SERVICE_TYPE: sendgrid
+      NOTIFIER_SENDGRID_API_KEY:
       KAFKA_BROKER: kafka:9092
       KAFKA_SCHEMA_REGISTRY: http://schema-registry:8081
     depends_on:
